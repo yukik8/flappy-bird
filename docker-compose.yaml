@@ -1,0 +1,42 @@
+# version: '3.8'
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    networks:
+      - app_network
+
+
+  adminer:
+    image: adminer
+    restart: always
+    networks:
+      - app_network
+    depends_on:
+      - db
+    environment:
+      - ADMINER_DESIGN=dracula
+    ports:
+      - 8080:8080
+
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    restart: always
+    environment:
+      - DB_URL=postgresql+psycopg://${DB_USERNAME}:${DB_PASSWORD}@db:5432/${DB_NAME}
+    networks:
+      - app_network
+    volumes:
+      - .:/user_db
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
